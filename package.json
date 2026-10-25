@@ -1,0 +1,12 @@
+{
+  "name": "midimiscellany",
+  "version": "0.23.0",
+  "private": true,
+  "description": "Bishop's-style retrospective MIDI looper for Ableton Live",
+  "scripts": {
+    "test": "node tests/retrospective_core.test.js && node tests/runtime_cycles.test.js",
+    "build": "python3 tools/build_amxd.py --output-dir dist/MIDIMiscellany",
+    "build:verify": "python3 tools/build_amxd.py --output-dir dist/MIDIMiscellany --verify",
+    "test:receiver": "node tests/plinky_receiver_integration.test.js"
+  }
+}

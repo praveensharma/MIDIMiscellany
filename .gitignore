@@ -1,0 +1,7 @@
+# Local recovery copies and machine-generated files
+backups/
+node_modules/
+__pycache__/
+*.py[cod]
+.DS_Store
+*.log
