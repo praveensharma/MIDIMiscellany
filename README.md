@@ -1,6 +1,38 @@
 # MIDIMiscellany
 
-Current release: **v23** (package version `0.23.0`). See [release notes](CHANGELOG.md).
+Current device release: **v23** (package version `0.23.0`).
+[Download the compiled device ZIP](https://github.com/praveensharma/MIDIMiscellany/releases/download/v23/MIDIMiscellany-v23.zip)
+· [GitHub Release](https://github.com/praveensharma/MIDIMiscellany/releases/tag/v23)
+· [Release notes](CHANGELOG.md)
+
+**Plinky MPE is supported and defaults Off.** Leave it Off for every ordinary
+MIDI source. Turn it On only when capturing Plinky's original multichannel notes
+and expression. Plinky harmony capture is a separate, optional receiver setup.
+
+## Install the released device
+
+1. Download **MIDIMiscellany-v23.zip** from the release assets, then unzip it.
+   GitHub's automatic source-code archives are for source/build workflows.
+2. Copy the complete extracted `MIDIMiscellany` folder into
+   `~/Music/Ableton/User Library/Max4Live/`.
+3. Keep these three files together:
+
+   ```text
+   MIDIMiscellany/
+     MIDIMiscellany.amxd
+     midimiscellany_runtime_v23.js
+     retrospective_core.js
+   ```
+
+4. In Live 12 with Max for Live available, load **MIDIMiscellany.amxd** from the
+   User Library onto the MIDI track receiving your performance. Reload an
+   existing device after updating its files. Keep it directly on the track for
+   the first validation, rather than nested inside a Rack.
+
+The ZIP also includes setup/validation docs. It does not include the separately
+maintained Plinky/Tetrachords receivers, Harmonic Quantizer, or Harmonic Motion.
+
+## First loop
 
 A small Max for Live MIDI device that turns the last N bars ending at your toggle
 into a looping Session View clip. The interaction is intentionally simple:
@@ -12,14 +44,59 @@ into a looping Session View clip. The interaction is intentionally simple:
    **LOOPING**.
 4. Toggle it active again. The device clears the old history, verifies Monitor In,
    and buffers your next performance while confirming the old clip stopped.
-5. Play another phrase and capture again: with **Overdub** off (the default),
+5. In ordinary MIDI mode, play another phrase and capture again: with
+   **Overdub** off (the default),
    the device replaces its previous clip in the same slot. With Overdub on, it
    combines the new window with the stored loop. The recording buffer itself
    always replaces old history; Overdub only affects the captured clip.
 
-The device supports ordinary MIDI notes, opt-in Plinky MPE, Plinky harmony capture, six loop lengths,
-and optional note-start quantization. Incoming MIDI passes through unchanged
-whenever Live admits it to the device.
+Start with Loop Length **1 bar**, Quantize **Off**, Overdub **Off**, and
+Immediate **Off** for an easy boundary-launch check. Play at least one full bar
+in Listening before capturing. Increase the duration only after this works.
+
+The device supports ordinary notes/velocity, opt-in Plinky MPE, and optional
+Plinky harmony capture. While Listening, incoming MIDI passes through unchanged.
+Ordinary MIDI keeps direct thru during playback; Plinky MPE gates live input
+throughout loop preparation/playback so the raw sidecar is the only output owner.
+
+## Controls
+
+| Control | Default | Ordinary MIDI | Plinky MPE |
+| --- | --- | --- | --- |
+| LISTENING / LOOPING | Listening / On | On buffers and passes live MIDI; Off captures and loops | Same gesture; playback uses the raw sidecar |
+| Loop Length | 1 bar | 1/4, 1/2, 1, 2, 4, or 8 bars | Same choices |
+| Quantize | Off | Off, 1/32, 1/16, 1/8, or 1/4; changes work during playback | Must be Off to capture; playback keeps raw timing |
+| Overdub | Off | Combine the new take with the previous same-length loop | Must be Off |
+| Immediate | On | Launch without a boundary wait, then correct clip phase | Wait for phase verification, then chase expression/held voices |
+| Plinky MPE | Off | Leave Off for other sources | Turn On for Plinky's original notes/expression; stops playback and clears history |
+
+Map **LISTENING / LOOPING** to a footswitch if desired. On means Listening;
+Off means capture/loop. After switching mode, changing to a longer loop length,
+or a transport seek/stop/start, refill the selected history duration.
+Turning Immediate Off waits for a musical boundary matching the selected length.
+
+## Source and companion routing
+
+Select a specific source port instead of **All Ins**, and avoid a second direct
+route from that source to the same destination. Hardware port names, channels,
+and MIDI/CV output assignments depend on your actual setup.
+
+| Source or role | Device/settings | Placement and behavior |
+| --- | --- | --- |
+| Keyboard, sequencer, or ordinary Tetrachords notes | MIDIMiscellany; Plinky MPE Off | Source → looper → optional note processors → instrument/MIDI output. Ordinary clips retain notes and velocity; live CC thru is not CC loop recording. |
+| Ordinary notes later shaped by Ableton MPE Control | MIDIMiscellany; Plinky MPE Off | Put MPE Control after the looper if it should shape replayed notes. This does not reconstruct expression originally played on Plinky. |
+| Plinky original MPE performance | MIDIMiscellany; Plinky MPE On | Select Plinky's note port and all required member channels. Route to an MPE-capable destination and verify the member channels at the output. See the MPE procedure below. |
+| Plinky Chords harmony metadata | Plinky Harmony Receiver; Publish Harmony | Dedicated Plinky metadata input track, Monitor In, MIDI To No Output. Shares root/chord/scale with the looper and quantizers inside Max; does not pass performance MIDI through. |
+| Tetrachords harmony metadata | Tetrachords Harmony Receiver | Separate companion-project setup; one harmony publisher at a time. MIDIMiscellany v23 does not retrospectively record Tetrachords SysEx harmony. |
+| Optional Tetrachords note-field collection | Tetrachords Note Field Input | Separate input track in the companion project; supplies a valid-note field to its receiver, not a performance loop. |
+| Notes following shared harmony | Harmonic Quantizer | Optional downstream note processor in the companion project. It reads shared harmony; it is not a replacement for MPE capture. Validate expression/channel behavior through your entire chain. |
+| Optional ensemble voice motion | Harmonic Motion | Companion-project controls for stateful quantizers; it does not generate or record performance MIDI. |
+
+Only **MIDIMiscellany** is built and distributed by this repository. The other
+Max for Live devices listed above belong to the **Tetrachords Harmonic Quantizer
+and Chord Tools** project; use that project's README for their full controls,
+installation, and routing. This table describes their integration with the looper,
+not a bundled installation or a claim that every hardware route has been tested.
 
 The v23 status shows the latest **input vel** while Listening and the captured
 **clip vel** range while Looping. "Verified" means the device read those
@@ -35,6 +112,18 @@ Quantize, Overdub, and unmodified raw thru retain their existing behavior.
 For recording Plinky's own MPE performance, turn **Plinky MPE On** while
 Listening, select Quantize **Off** and Overdub **Off**, and refill the selected
 history duration. Mode changes stop playback and clear the recording history.
+
+1. Select Plinky's performance port and the member channels it actually sends on
+   at the looper track's input. Keep the harmony receiver on its separate track.
+2. Enable Plinky MPE, set Quantize Off and Overdub Off, and start Live's transport.
+3. Play for at least the selected Loop Length, including pressure, slide/CC74,
+   and pitch bend. Capture with the main toggle.
+4. Stop playing and confirm **LOOPING - Plinky MPE** in the status. Check a MIDI
+   monitor after the complete output chain for the original voice channels and
+   expression; listen for independent voices and a clean wrap.
+5. Return the main toggle to Listening to stop the loop and release its voices.
+   Turn Plinky MPE Off and refill history before recording another instrument.
+
 MPE capture is rejected if Quantize or Overdub is enabled; changing Quantize
 while an MPE loop plays does not alter the raw performance.
 
@@ -75,6 +164,30 @@ with Monitor In and Publish Harmony enabled. Keep only one receiver publishing.
 The receiver and MIDIMiscellany share harmony inside Max; the receiver does not
 need MIDI routed back from the looping clip.
 
+1. Enable Plinky's harmony metadata output on the port being received; voice
+   Note Ons alone do not supply root/chord/scale. Use the companion project's
+   Plinky setup guide for its firmware-specific MIDI page/port configuration.
+2. On the dedicated receiver track, select that exact Plinky port and the channels
+   carrying metadata, Monitor In, MIDI To No Output. Put the receiver before any
+   CC filters; it consumes MIDI, so keep it off the looper's performance chain.
+3. Start in **Monitor Only** and change harmony. Confirm complete Root, Chord,
+   and Scale readouts. If the initial state is partial, change chord quality and
+   scale so Plinky sends the missing masks.
+4. Disable other harmony publishers, including the Tetrachords Harmony Receiver,
+   then select **Publish Harmony**. Optional Live Scale Sync projects the shared
+   harmony into Live's Current Scale; it is not needed for MPE playback.
+5. With the updated receiver running, refill the looper's history, play a
+   progression, and capture. Confirm **harmony loop N states** and check that
+   the receiver repeats the progression when you stop playing Plinky.
+6. Select Listening to restore the latest live Plinky harmony. Reloading either
+   device requires refilling/recapturing the harmony timeline.
+
+Plinky MPE On is not required for harmony replay. Conversely, recording Plinky
+MPE notes does not require a harmony publisher when you only need note expression.
+If a complete Plinky harmony cache exists, v23 checks receiver readiness before
+capturing that timeline; a stale/disabled receiver may therefore block capture
+until the receiver is reloaded and publishing.
+
 While Listening, MIDIMiscellany records the receiver's complete decoded harmony
 states. Capture carries the harmony active at the window's beginning and every
 subsequent change. While Looping, the receiver follows that captured timeline
@@ -95,7 +208,12 @@ The receiver companion source lives in the Tetrachords Quantizer project.
 prepares its update without installing it. `node tests/plinky_receiver_integration.test.js`
 runs that project's protocol/quantizer tests plus loop takeover/release tests
 against the prepared receiver. Set `PLINKY_IMPLEMENTATION_ROOT` if that project
-is in a different location. An old or non-publishing receiver blocks a harmony
+is in a different location. This variable configures the integration test;
+for a different receiver source location, pass `--source /path/to/plinky_harmony_receiver.js`
+to the preparation script. The helper stages JavaScript only: it does not build
+or install the receiver AMXD. Apply the prepared update using the companion
+project's build/install procedure, then reload the receiver in Live.
+An old or non-publishing receiver blocks a harmony
 capture before replacing a clip and reports the problem in the looper status.
 
 ## Build
@@ -134,7 +252,8 @@ while Listening, then **Auto** after a successful capture and throughout clip
 playback. It waits until Live reports Auto before firing the generated clip and
 requests In immediately when Listening is selected. The old loop buffer is
 cleared at that gesture, while new notes played during Live's STOPPING interval
-are retained. The device's direct MIDI thru remains active, but it cannot
+are retained. In ordinary MIDI mode the direct MIDI thru remains active; Plinky
+MPE mode gates live thru during loop preparation/playback. Neither path can
 substitute for track monitoring because Live applies the track's monitor gate
 before MIDI reaches the device. Recording opens only after In is confirmed.
 Play at least the selected duration after entering Listening; an incomplete
@@ -142,21 +261,23 @@ history is rejected instead of filling the clip with unrecorded silence.
 
 The device uses the first empty Session slot on its hosting track, remembers
 that slot as device-managed, and reuses it for later captures. With Overdub off,
-each later capture replaces the managed clip. With Overdub on and an unchanged
-loop length, the newly captured notes are combined with the stored notes.
+each later capture replaces the managed clip. In ordinary MIDI mode, with
+Overdub on and an unchanged loop length, the newly captured notes are combined with the stored notes.
 
 **Immediate** provides a no-queue launch and is on by default. After Live confirms
 the new clip is running, the device computes the phrase phase from Live's current
 song time and performs an unquantized relative playhead jump. This removes the
 intentional boundary wait, but the Live API exposes launch and playhead movement
 as separate operations, so external MIDI may briefly emit a note from the
-uncorrected position and notes already spanning the destination are not chased.
+uncorrected position and notes already spanning the destination are not chased
+in ordinary MIDI mode. Plinky MPE holds sidecar output until phase verification
+and then reconstructs expression and active voices at the destination.
 Turn Immediate off to use the length-matched boundary launch instead.
 
-## MVP policies and limitations
+## Playback policies and limitations
 
-Quantize also works while LOOPING: choose a grid to move note starts in the
-existing clip without relaunching it. Off restores the original captured timing,
+In ordinary MIDI mode, Quantize also works while LOOPING: choose a grid to move
+note starts in the existing clip without relaunching it. Off restores the original captured timing,
 including when the capture was initially quantized. Changes are read back before
 the status reports success. Original timing is retained for this device session;
 it is not reconstructed from a previously saved/reloaded clip.
@@ -188,6 +309,24 @@ your installed device. Backups and Python caches stay local and are ignored by G
 `npm test` is self-contained. `npm run test:receiver` additionally requires the
 separate Tetrachords Quantizer implementation; configure `PLINKY_IMPLEMENTATION_ROOT`
 as described above. It is not required to build or test the ordinary MIDI/MPE runtime.
+
+## Troubleshooting
+
+| Symptom | Check/action |
+| --- | --- |
+| No input or no captured notes | Select the actual source port/channel, start transport, confirm Monitor In/Listening, and play for the full selected duration. |
+| “Need … of new listening history” | Refill history after entering Listening, changing mode, increasing length, or a transport discontinuity. |
+| Plinky MPE capture rejected | Set Quantize Off and Overdub Off; refill history if mode changed. |
+| MPE loop has no sound | Its clip notes should stay muted. Confirm the looper is running, the status includes Plinky MPE, scripts are adjacent to the AMXD, and routing reaches the intended destination. Recapture after reload. |
+| Channels or expression collapse downstream | Inspect MIDI after each processor/output stage; ordinary Live clip playback cannot substitute for Plinky's raw MPE stream. |
+| Double notes during ordinary playback | Check for duplicate routes and live input on an armed Auto-monitor track. MPE mode gates its direct live thru during loop playback. |
+| Harmony capture asks for an updated receiver | Reload the bridge-equipped Plinky receiver, enable Publish Harmony, resolve publisher conflicts, and refill the history. |
+| Harmony stays live or is incomplete | Confirm metadata reaches the separate receiver track, all three readouts are complete, and only one receiver publishes. |
+| Notes remain held | Select Listening and stop the managed loop. For MPE, the runtime also accepts a Max `panic` message; there is no dedicated Panic button. Use the destination's own panic control if needed and inspect the route. |
+| Max cannot find a runtime script | Reinstall the complete release folder and reload the AMXD; do not install the AMXD alone. |
+
+For verification scenarios, see [Live and hardware validation](docs/VALIDATION.md).
+Source tests do not establish audible performance or hardware timing.
 
 ## Repository layout
 
