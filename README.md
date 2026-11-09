@@ -1,5 +1,9 @@
 # MIDIMiscellany
 
+MIDIMiscellany is a Max for Live MIDI looper for capturing a phrase after
+you've played it. While Live runs, the device listens to incoming MIDI. Toggle
+out of Listening to turn the last few bars into a Session View loop.
+
 Current device release: **v23** (package version `0.23.0`).
 [Download the compiled device ZIP](https://github.com/praveensharma/MIDIMiscellany/releases/download/v23/MIDIMiscellany-v23.zip)
 · [GitHub Release](https://github.com/praveensharma/MIDIMiscellany/releases/tag/v23)
@@ -33,9 +37,6 @@ The ZIP also includes setup/validation docs. It does not include the separately
 maintained Plinky/Tetrachords receivers, Harmonic Quantizer, or Harmonic Motion.
 
 ## First loop
-
-A small Max for Live MIDI device that turns the last N bars ending at your toggle
-into a looping Session View clip. The interaction is intentionally simple:
 
 1. Leave the main toggle active in **LISTENING** and play while Live's transport
    is running.
